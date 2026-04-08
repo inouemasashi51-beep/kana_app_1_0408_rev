@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ฝึกอ่านภาษาญี่ปุ่น — かな読み上げ練習</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=BIZ+UDPMincho&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --font-kana: 'BIZ UDPMincho', 'UD デジタル教科書体', '游明朝', 'Yu Mincho', serif; }
+  :root {
+    --bg:#ffffff; --bg2:#f5f5f3; --ink:#1a1a1a; --muted:#6b6b6b;
+    --border:rgba(0,0,0,0.12); --r-md:8px; --r-lg:12px;
+    --font:-apple-system,BlinkMacSystemFont,'Sarabun','Hiragino Sans','Yu Gothic',sans-serif;
+    --indigo:#3d5a99; --indigo-d:#2e4480; --red:#e24b4a; --red-d:#c03a39;
+    --green:#3b6d11; --amber:#854f0b;
+  }
+  @media(prefers-color-scheme:dark){:root{--bg:#1a1a1a;--bg2:#252525;--ink:#f0f0f0;--muted:#9a9a9a;--border:rgba(255,255,255,0.12);}}
+  body{font-family:var(--font);background:var(--bg2);color:var(--ink);min-height:100vh;padding:1rem;}
+  .wrap{max-width:640px;margin:0 auto;}
+  .card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--r-lg);padding:1.25rem;margin-bottom:1rem;}
+  .btn{padding:8px 16px;border-radius:var(--r-md);font-size:13px;font-weight:500;cursor:pointer;border:0.5px solid var(--border);background:var(--bg);color:var(--ink);transition:all 0.15s;font-family:var(--font);}
+  .btn:hover{background:var(--bg2);} .btn:active{transform:scale(0.98);}
+  .btn-primary{background:var(--indigo);border-color:var(--indigo);color:#fff;} .btn-primary:hover{background:var(--indigo-d);}
+  .btn-danger{background:var(--red);border-color:var(--red);color:#fff;font-size:12px;padding:6px 12px;} .btn-danger:hover{background:var(--red-d);}
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+  .tabs{display:flex;border-bottom:0.5px solid var(--border);margin-bottom:1rem;}
+  .tab{padding:8px 14px;font-size:13px;cursor:pointer;color:var(--muted);border:none;border-bottom:2px solid transparent;background:none;font-family:var(--font);transition:all 0.15s;}
+  .tab.active{color:var(--ink);border-bottom-color:var(--indigo);font-weight:500;}
+  .lbl{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:8px;}
+  .empty{text-align:center;color:var(--muted);font-size:13px;padding:1.5rem;}
+  textarea{width:100%;border:0.5px solid var(--border);border-radius:var(--r-md);padding:10px 12px;font-size:20px;font-family:var(--font);background:var(--bg2);color:var(--ink);resize:none;line-height:1.6;}
+  textarea::placeholder{color:var(--muted);font-size:15px;}
+  input[type=text],input[type=password]{width:100%;padding:10px 12px;border:0.5px solid var(--border);border-radius:var(--r-md);font-size:14px;font-family:var(--font);background:var(--bg2);color:var(--ink);}
+  input:focus{outline:none;border-color:var(--indigo);}
+  .icon-btn{width:32px;height:32px;border-radius:var(--r-md);border:0.5px solid var(--border);background:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+  .icon-btn:hover{background:var(--bg2);}
+  .panel{display:none;} .panel.active{display:block;}
+  .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:4px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* loading */
+  #loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:999;}
+  #loading-overlay .sp{width:28px;height:28px;border:3px solid rgba(0,0,0,0.1);border-top-color:var(--indigo);border-radius:50%;animation:spin 0.8s linear infinite;}
+  #loading-overlay span{font-size:13px;color:var(--muted);}
+
+  /* login */
+  #login-screen{display:none;text-align:center;padding:2rem 0;}
+  .login-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--r-lg);padding:2rem 1.5rem;max-width:340px;margin:0 auto;}
+  .pw-error{font-size:12px;color:var(--red);margin:8px 0;min-height:16px;}
+
+  /* sync bar */
+  .sync-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r-md);margin-bottom:1rem;font-size:12px;}
+  .sync-dot{width:8px;height:8px;border-radius:50%;background:#ccc;flex-shrink:0;}
+  .sync-dot.ok{background:#639922;} .sync-dot.err{background:var(--red);} .sync-dot.busy{background:#f0c040;animation:blink 1s ease-in-out infinite;}
+  @keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+  /* api key setup */
+  .setup-box{background:#eef1f9;border:0.5px solid #b0bfe8;border-radius:var(--r-md);padding:14px;margin-bottom:1rem;font-size:13px;line-height:1.7;}
+  .setup-box a{color:var(--indigo);}
+  .setup-row{display:flex;gap:8px;margin-top:10px;}
+  .setup-row input{flex:1;font-size:12px;font-family:monospace;}
+  .setup-msg{font-size:12px;margin-top:6px;min-height:16px;}
+
+  /* notice box */
+  .notice{background:#fff8e6;border:0.5px solid #f0c040;border-radius:var(--r-md);padding:10px 14px;font-size:12px;color:#6b4c00;margin-bottom:1rem;line-height:1.6;}
+
+  /* teacher */
+  .teacher-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;padding-bottom:0.75rem;border-bottom:0.5px solid var(--border);}
+  .t-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--indigo);background:#eef1f9;padding:4px 10px;border-radius:var(--r-md);}
+  .cat-btn.active{background:#eef1f9;border-color:var(--indigo);color:var(--indigo);}
+  .content-item{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r-md);padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+  .upload-zone{border:1.5px dashed var(--border);border-radius:var(--r-lg);padding:1.5rem;text-align:center;cursor:pointer;background:var(--bg2);transition:border-color 0.2s;display:block;}
+  .upload-zone:hover{border-color:var(--indigo);}
+  .upload-zone input{display:none;}
+  .audio-item{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r-md);padding:12px;margin-top:8px;}
+  .audio-item audio{width:100%;height:36px;margin-top:8px;display:block;}
+  .save-msg{font-size:11px;color:#639922;margin-top:6px;min-height:14px;}
+
+  /* practice */
+  .practice-header{text-align:center;padding:0.5rem 0;}
+  .big-kana{font-size:56px;font-weight:400;letter-spacing:0.05em;margin:0.5rem 0;line-height:1.4;font-family:var(--font-kana);}
+  .kana-cat{font-size:12px;color:var(--muted);}
+  .nav-btns{display:flex;align-items:center;justify-content:center;gap:12px;margin:0.75rem 0;}
+  .nav-btn{width:36px;height:36px;border-radius:50%;border:0.5px solid var(--border);background:var(--bg);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+  .nav-btn:hover{background:var(--bg2);}
+  .nav-counter{font-size:13px;color:var(--muted);min-width:60px;text-align:center;}
+  .progress-dots{display:flex;gap:4px;justify-content:center;}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--border);}
+  .dot.done{background:#639922;} .dot.current{background:var(--indigo);}
+
+  /* record */
+  .record-area{text-align:center;padding:1rem 0 0.5rem;}
+  .record-ring{width:80px;height:80px;border-radius:50%;border:2px solid var(--border);background:var(--bg2);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;cursor:pointer;transition:all 0.2s;font-size:26px;user-select:none;}
+  .record-ring:hover{border-color:var(--red);background:#fff0f0;}
+  .record-ring.recording{border-color:var(--red);background:#fcebeb;animation:pulse 1s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+  .record-hint{font-size:13px;color:var(--muted);}
+  .record-status{font-size:12px;color:var(--red);margin-top:6px;min-height:18px;line-height:1.4;}
+  .transcript-box{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r-md);padding:12px 14px;margin-top:12px;display:none;}
+  .transcript-label{font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:500;}
+  .transcript-row{display:flex;align-items:flex-start;gap:10px;}
+  .transcript-item{flex:1;}
+  .transcript-item-label{font-size:10px;color:var(--muted);margin-bottom:3px;}
+  .transcript-target{font-size:24px;letter-spacing:0.05em;font-family:var(--font-kana);}
+  .transcript-heard{font-size:24px;letter-spacing:0.05em;font-family:var(--font-kana);}
+  .char-match{color:#3b6d11;} .char-miss{color:#e24b4a;text-decoration:underline;} .char-extra{color:#ba7517;}
+  .banner{border-radius:var(--r-md);padding:10px 14px;font-size:13px;margin-bottom:10px;display:none;line-height:1.5;}
+  .banner-warn{background:#fff8e6;border:0.5px solid #f0c040;color:#6b4c00;}
+  .banner-info{background:#eef1f9;border:0.5px solid #b0bfe8;color:#2a3f7a;}
+  .playback-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-top:0.5px solid var(--border);margin-top:10px;flex-wrap:wrap;}
+  .playback-row audio{flex:1;height:36px;min-width:180px;}
+
+  /* eval */
+  .eval-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r-lg);padding:1.25rem;margin-top:1rem;}
+  .eval-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .eval-score{font-size:30px;font-weight:500;}
+  .score-high{color:var(--green);} .score-mid{color:var(--amber);} .score-low{color:#a32d2d;}
+  .bar-wrap{margin:6px 0;}
+  .bar-labels{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:3px;}
+  .bar-track{height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:3px;transition:width 0.6s;}
+  .fill-good{background:#639922;} .fill-mid{background:#ba7517;} .fill-bad{background:#e24b4a;}
+  .eval-fb{font-size:13px;color:var(--muted);line-height:1.7;margin-top:10px;border-top:0.5px solid var(--border);padding-top:10px;}
+  .fb-lbl{font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:500;}
+  .fb-txt{margin-bottom:10px;color:var(--ink);}
+</style>
+</head>
+<body>
+
+<div id="loading-overlay">
+  <div class="sp"></div>
+  <span id="loading-msg">กำลังโหลด...</span>
+</div>
+
+<div class="wrap" style="display:none;" id="main-wrap">
+
+  <!-- LOGIN -->
+  <div id="login-screen">
+    <div class="login-card">
+      <div style="font-size:32px;margin-bottom:12px;">🔐</div>
+      <div style="font-size:16px;font-weight:500;margin-bottom:4px;">教員モード</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:1.5rem;">パスワードを入力してください</div>
+      <input type="password" id="pw-input" placeholder="パスワード" style="margin-bottom:4px;" onkeydown="if(event.key==='Enter')checkPw()">
+      <div class="pw-error" id="pw-error"></div>
+      <button class="btn btn-primary" style="width:100%;" onclick="checkPw()">ログイン</button>
+      <button class="btn" style="width:100%;margin-top:8px;" onclick="showStudent()">← 戻る</button>
+    </div>
+  </div>
+
+  <!-- TEACHER -->
+  <div class="panel" id="panel-teacher">
+    <div class="teacher-bar">
+      <span class="t-badge">🎓 教員モード</span>
+      <button class="btn btn-danger" onclick="logout()">ログアウト</button>
+    </div>
+
+    <div class="sync-bar" id="sync-bar">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span style="flex:1;color:var(--muted);font-size:12px;" id="sync-text">未設定</span>
+      <button class="btn" style="font-size:11px;padding:4px 10px;" onclick="switchTab('settings')">⚙️ 設定</button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('text')">テキスト追加</button>
+      <button class="tab" onclick="switchTab('audio')">音声ファイル</button>
+      <button class="tab" onclick="switchTab('list')">一覧</button>
+      <button class="tab" onclick="switchTab('settings')">⚙️</button>
+    </div>
+
+    <div id="tab-text">
+      <div class="lbl">練習テキストを追加</div>
+      <div class="card">
+        <textarea id="kana-input" rows="3" placeholder="ひらがなやカタカナを入力&#10;例: さくら / コーヒー / ありがとうございます"></textarea>
+        <div style="margin-top:8px;">
+          <div class="lbl" style="margin-bottom:6px;">カテゴリー</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="btn cat-btn active" data-cat="ひらがな" onclick="selectCat(this)">ひらがな</button>
+            <button class="btn cat-btn" data-cat="カタカナ" onclick="selectCat(this)">カタカナ</button>
+            <button class="btn cat-btn" data-cat="混合" onclick="selectCat(this)">混合</button>
+            <button class="btn cat-btn" data-cat="単語" onclick="selectCat(this)">単語</button>
+            <button class="btn cat-btn" data-cat="文" onclick="selectCat(this)">文</button>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="addContent()">追加する</button>
+          <button class="btn" onclick="document.getElementById('kana-input').value=''">クリア</button>
+        </div>
+      </div>
+      <div class="lbl">クイック追加</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem;">
+        <button class="btn" onclick="quickAdd('あいうえお','ひらがな')">あいうえお</button>
+        <button class="btn" onclick="quickAdd('アイウエオ','カタカナ')">アイウエオ</button>
+        <button class="btn" onclick="quickAdd('さくら','単語')">さくら</button>
+        <button class="btn" onclick="quickAdd('コーヒー','カタカナ')">コーヒー</button>
+        <button class="btn" onclick="quickAdd('ありがとうございます','文')">ありがとうございます</button>
+        <button class="btn" onclick="quickAdd('おはようございます','文')">おはようございます</button>
+      </div>
+    </div>
+
+    <div id="tab-audio" style="display:none;">
+      <div class="notice">
+        💡 Google Drive の共有リンクを入力してください。リンクはクラウドに保存され、すべてのデバイスで共有されます。<br><br>
+        <strong>共有リンクの取得方法：</strong> ファイルを右クリック →「共有」→「リンクをコピー」<br>
+        ※「リンクを知っている全員が閲覧可」に設定してください
+      </div>
+      <div class="lbl">Google Drive リンクを追加</div>
+      <div class="card">
+        <div style="margin-bottom:10px;">
+          <div class="lbl" style="margin-bottom:6px;">ラベル（例: さくら の発音）</div>
+          <input type="text" id="audio-label-input" placeholder="音声の説明を入力">
+        </div>
+        <div style="margin-bottom:10px;">
+          <div class="lbl" style="margin-bottom:6px;">Google Drive リンク</div>
+          <input type="text" id="audio-url-input" placeholder="https://drive.google.com/file/d/...">
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="addAudioLink()">追加する</button>
+          <button class="btn" onclick="clearAudioInputs()">クリア</button>
+        </div>
+        <div class="save-msg" id="save-msg"></div>
+      </div>
+      <div class="lbl">登録済み音声リンク</div>
+      <div id="audio-file-list"></div>
+    </div>
+
+    <div id="tab-list" style="display:none;">
+      <div class="lbl">登録済みテキスト（クラウド同期）</div>
+      <div id="content-list-view"><div class="empty">まだありません</div></div>
+    </div>
+
+    <div id="tab-settings" style="display:none;">
+      <div class="lbl">クラウド同期設定（テキストのみ）</div>
+      <div class="setup-box">
+        <strong>JSONBin.io</strong> でテキストコンテンツをクラウド保存します。<br>
+        複数デバイスから同じテキストを共有できます。<br><br>
+        <strong>手順：</strong><br>
+        1. <a href="https://jsonbin.io" target="_blank">jsonbin.io</a> で無料登録<br>
+        2. ダッシュボード → <strong>API Keys</strong> → Master Key をコピー<br>
+        3. 下に貼り付けて「保存」をクリック
+        <div class="setup-row">
+          <input type="text" id="apikey-input" placeholder="$2b$10$xxxxxxxxxxxxxxxxxxxxxxxxx">
+          <button class="btn btn-primary" onclick="saveApiKey()">保存</button>
+        </div>
+        <div class="setup-msg" id="apikey-msg"></div>
+      </div>
+      <div class="card" style="font-size:13px;color:var(--muted);line-height:1.9;">
+        <div style="font-weight:500;color:var(--ink);margin-bottom:8px;">📋 学生への共有方法</div>
+        1. 上でAPIキーを登録してデータを保存<br>
+        2. 下の <strong>Bin ID</strong> をコピーして学生に配布<br>
+        3. 学生は🔄ボタン横の「接続」からBin IDを入力<br><br>
+        <div id="binid-display" style="display:none;">
+          <div style="font-weight:500;color:var(--ink);margin-bottom:4px;">あなたの Bin ID：</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <code id="binid-value" style="flex:1;background:var(--bg2);padding:8px 10px;border-radius:var(--r-md);border:0.5px solid var(--border);font-size:13px;word-break:break-all;"></code>
+            <button class="btn" style="flex-shrink:0;" onclick="copyBinId()">コピー</button>
+          </div>
+        </div>
+        <div id="binid-empty" style="color:var(--muted);">※ APIキーを登録して保存するとBin IDが表示されます</div>
+      </div>
+
+      <div class="lbl" style="margin-top:0.5rem;">Bin ID を変更・リセット</div>
+      <div class="card" style="font-size:13px;">
+        <div style="color:var(--muted);margin-bottom:10px;line-height:1.7;">
+          別の Bin ID に切り替えたい場合、または新しい Bin を作り直したい場合に使います。<br>
+          <span style="color:var(--red);font-size:12px;">※ 変更すると現在の Bin との接続が切れます。新しい Bin にデータは引き継がれません。</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <input type="text" id="binid-change-input" placeholder="新しい Bin ID を入力（空欄で新規作成）" style="flex:1;font-size:12px;font-family:monospace;">
+          <button class="btn btn-primary" style="flex-shrink:0;white-space:nowrap;" onclick="changeBinId()">切り替え</button>
+        </div>
+        <button class="btn" style="width:100%;color:var(--red);border-color:var(--red);font-size:12px;" onclick="resetBinId()">🗑 Bin ID をリセットして新規作成</button>
+        <div class="setup-msg" id="binid-change-msg"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STUDENT -->
+  <div class="panel active" id="panel-student">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <div>
+        <div style="font-size:17px;font-weight:600;">🌸 ฝึกออกเสียงภาษาญี่ปุ่น</div>
+        <div style="font-size:12px;color:var(--muted);">ฝึกอ่านฮิรางานะและคาตาคานะ</div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn" style="font-size:11px;padding:5px 10px;" onclick="syncFromCloud(true)" title="อัปเดตข้อมูลจากเซิร์ฟเวอร์">🔄 อัปเดต</button>
+        <button class="btn" style="font-size:11px;padding:5px 10px;color:var(--muted);" onclick="showLogin()">教員ログイン</button>
+      </div>
+    </div>
+
+    <div id="student-sync-bar" style="display:none;" class="sync-bar">
+      <div class="sync-dot" id="student-sync-dot"></div>
+      <span style="flex:1;color:var(--muted);font-size:12px;" id="student-sync-text"></span>
+    </div>
+
+    <!-- student bin ID setup (shown when not configured) -->
+    <div id="student-setup-box" style="display:none;" class="setup-box">
+      <strong>接続設定</strong><br>
+      教員から共有された <strong>Bin ID</strong> を入力してください。<br>
+      <div class="setup-row" style="margin-top:8px;">
+        <input type="text" id="student-binid-input" placeholder="例: 64a1b2c3d4e5f6a7b8c9d0e1" style="font-size:12px;font-family:monospace;">
+        <button class="btn btn-primary" onclick="saveStudentBinId()">接続</button>
+      </div>
+      <div class="setup-msg" id="student-setup-msg"></div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchStudentTab('text')">อ่านออกเสียง</button>
+      <button class="tab" onclick="switchStudentTab('audio')">ฟังและฝึกพูด</button>
+    </div>
+
+    <div id="student-tab-text">
+      <div class="card">
+        <div class="practice-header">
+          <div class="kana-cat" id="practice-cat">ひらがな</div>
+          <div class="big-kana" id="practice-text">—</div>
+        </div>
+        <div class="nav-btns">
+          <button class="nav-btn" onclick="navItem(-1)">◀</button>
+          <span class="nav-counter" id="nav-counter">0 / 0</span>
+          <button class="nav-btn" onclick="navItem(1)">▶</button>
+        </div>
+        <div class="progress-dots" id="progress-dots"></div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;font-weight:500;margin-bottom:10px;color:var(--muted);">บันทึกเสียงของคุณ</div>
+        <div id="banner-mic" class="banner banner-warn">⚠️ <strong>ไม่สามารถเข้าถึงไมโครโฟนได้</strong><br>กรุณาอนุญาตการเข้าถึงไมโครโฟน<br><span style="font-size:11px;">(Chrome: คลิกไอคอนกุญแจในแถบที่อยู่ → อนุญาตไมโครโฟน)</span></div>
+        <div id="banner-nospeech" class="banner banner-info">ℹ️ ไม่ได้ยินเสียงพูด — กรุณาพูดให้ดังขึ้น แล้วลองอีกครั้ง</div>
+        <div id="banner-nobrowser" class="banner banner-warn">⚠️ เบราว์เซอร์นี้ไม่รองรับการรู้จำเสียง — กรุณาใช้ Google Chrome</div>
+        <div class="record-area">
+          <div class="record-ring" id="record-btn" onclick="toggleRecord()">🎤</div>
+          <div class="record-hint" id="record-hint">แตะเพื่อเริ่มบันทึกเสียง</div>
+          <div class="record-status" id="record-status"></div>
+        </div>
+        <div class="transcript-box" id="transcript-box">
+          <div class="transcript-label">ผลการรับรู้เสียง</div>
+          <div class="transcript-row">
+            <div class="transcript-item">
+              <div class="transcript-item-label">ข้อความที่ต้องการ</div>
+              <div class="transcript-target" id="transcript-target">—</div>
+            </div>
+            <div style="font-size:20px;padding-top:16px;color:var(--muted);">→</div>
+            <div class="transcript-item">
+              <div class="transcript-item-label">เสียงที่ได้ยิน</div>
+              <div class="transcript-heard" id="transcript-heard">—</div>
+            </div>
+          </div>
+          <div id="transcript-note" style="font-size:12px;color:var(--muted);margin-top:8px;"></div>
+        </div>
+        <div id="playback-wrap" style="display:none;" class="playback-row">
+          <span style="font-size:12px;color:var(--muted);">เสียงที่บันทึก:</span>
+          <audio id="recorded-audio" controls></audio>
+        </div>
+        <div class="btn-row" style="justify-content:center;margin-top:10px;">
+          <button class="btn btn-primary" id="eval-btn" onclick="evaluatePronunciation()" style="display:none;">ให้ AI ประเมินการออกเสียง ↗</button>
+        </div>
+      </div>
+      <div id="eval-result" style="display:none;"></div>
+    </div>
+
+    <div id="student-tab-audio" style="display:none;">
+      <div id="audio-practice-list"><div class="empty">ครูยังไม่ได้อัปโหลดไฟล์เสียง</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════
+   Constants & State
+   ══════════════════════════════════════ */
+const TEACHER_PW      = 'sensei123';
+const JSONBIN_BASE    = 'https://api.jsonbin.io/v3';
+const LS_APIKEY       = 'kana_apikey';
+const LS_BINID        = 'kana_binid';
+const LS_STUDENT_BINID = 'kana_student_binid';  // Bin ID stored on student device
+const DB_NAME         = 'KanaPracticeAudio';
+
+let S = {
+  cat:'ひらがな', contents:[], audioFiles:[], idx:0,
+  recording:false, mediaRec:null, chunks:[], blob:null,
+  speechRec:null, transcript:'', evaluating:false,
+  hasSpeechAPI:('webkitSpeechRecognition' in window||'SpeechRecognition' in window),
+  apiKey:'', binId:'', studentBinId:'', db:null
+};
+
+/* ══════════════════════════════════════
+   localStorage
+   ══════════════════════════════════════ */
+const lsGet = k => { try{ return localStorage.getItem(k)||''; }catch(e){ return ''; } };
+const lsSet = (k,v) => { try{ localStorage.setItem(k,v); }catch(e){} };
+
+/* ══════════════════════════════════════
+   IndexedDB — audio files only
+   ══════════════════════════════════════ */
+function openDB(){
+  return new Promise((res,rej)=>{
+    const r=indexedDB.open(DB_NAME,1);
+    r.onupgradeneeded=e=>{ if(!e.target.result.objectStoreNames.contains('audio')) e.target.result.createObjectStore('audio',{keyPath:'id'}); };
+    r.onsuccess=e=>res(e.target.result);
+    r.onerror=e=>rej(e.target.error);
+  });
+}
+const dbPut    = (obj) => new Promise((res,rej)=>{ const t=S.db.transaction('audio','readwrite'); t.objectStore('audio').put(obj).onsuccess=()=>res(); t.onerror=e=>rej(e); });
+const dbDel    = (id)  => new Promise((res,rej)=>{ const t=S.db.transaction('audio','readwrite'); t.objectStore('audio').delete(id).onsuccess=()=>res(); t.onerror=e=>rej(e); });
+const dbGetAll = ()    => new Promise((res,rej)=>{ const t=S.db.transaction('audio','readonly'); t.objectStore('audio').getAll().onsuccess=e=>res(e.target.result); t.onerror=e=>rej(e); });
+
+/* ══════════════════════════════════════
+   JSONBin — text content only
+   ══════════════════════════════════════ */
+function setSyncUI(state, msg){
+  const dot=document.getElementById('sync-dot'), txt=document.getElementById('sync-text');
+  if(dot) dot.className='sync-dot'+(state==='ok'?' ok':state==='err'?' err':state==='busy'?' busy':'');
+  if(txt) txt.textContent=msg;
+}
+function setStudentSyncUI(state, msg){
+  const bar=document.getElementById('student-sync-bar');
+  const dot=document.getElementById('student-sync-dot'), txt=document.getElementById('student-sync-text');
+  if(bar) bar.style.display='flex';
+  if(dot) dot.className='sync-dot'+(state==='ok'?' ok':state==='err'?' err':state==='busy'?' busy':'');
+  if(txt) txt.textContent=msg;
+}
+
+async function cloudSave(){
+  if(!S.apiKey){ setSyncUI('err','APIキー未設定 — ⚙️ 設定してください'); return; }
+  setSyncUI('busy','クラウドに保存中...');
+  const payload={ contents: S.contents, audioFiles: S.audioFiles };
+  try{
+    if(!S.binId){
+      const r=await fetch(`${JSONBIN_BASE}/b`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-Master-Key':S.apiKey,'X-Bin-Name':'KanaPractice','X-Bin-Private':'false'},
+        body:JSON.stringify(payload)
+      });
+      if(!r.ok){ const e=await r.text(); throw new Error(`${r.status}: ${e}`); }
+      const d=await r.json();
+      S.binId=d.metadata.id; lsSet(LS_BINID,S.binId); updateBinIdDisplay();
+      setSyncUI('ok','保存完了 ✓（新規作成）');
+    } else {
+      const r=await fetch(`${JSONBIN_BASE}/b/${S.binId}`,{
+        method:'PUT',
+        headers:{'Content-Type':'application/json','X-Master-Key':S.apiKey},
+        body:JSON.stringify(payload)
+      });
+      if(!r.ok){ const e=await r.text(); throw new Error(`${r.status}: ${e}`); }
+      setSyncUI('ok','クラウドに保存しました ✓');
+    }
+  }catch(e){
+    setSyncUI('err','保存失敗: '+e.message);
+  }
+}
+
+async function syncFromCloud(fromStudent){
+  // Students use their locally-saved binId (no apiKey needed for public bins)
+  const binId  = fromStudent ? (S.studentBinId || S.binId) : S.binId;
+  const apiKey = S.apiKey; // teacher always has this; students may not
+
+  if(!binId){
+    if(fromStudent){
+      setStudentSyncUI('err','未接続');
+      document.getElementById('student-setup-box').style.display='block';
+    }
+    return;
+  }
+  if(fromStudent) setStudentSyncUI('busy','データを取得中...');
+  else setSyncUI('busy','読み込み中...');
+
+  // Build headers: apiKey required for private bins, optional for public
+  const headers = {};
+  if(apiKey) headers['X-Master-Key'] = apiKey;
+
+  try{
+    const r=await fetch(`${JSONBIN_BASE}/b/${binId}/latest`, {headers});
+    if(!r.ok){ const e=await r.text(); throw new Error(`${r.status}: ${e}`); }
+    const d=await r.json();
+    if(d.record?.contents)   S.contents   = d.record.contents;
+    if(d.record?.audioFiles) S.audioFiles = d.record.audioFiles;
+    S.idx=0; renderPracticeCard(); renderAudioFileList(); renderAudioPractice();
+    const t=new Date().toLocaleTimeString();
+    if(fromStudent){
+      setStudentSyncUI('ok','同期完了 ✓  '+t);
+      document.getElementById('student-setup-box').style.display='none';
+    } else {
+      setSyncUI('ok','読み込み完了 ✓  '+t);
+    }
+  }catch(e){
+    if(fromStudent) setStudentSyncUI('err','取得失敗: '+e.message);
+    else setSyncUI('err','読み込み失敗: '+e.message);
+  }
+}
+
+function saveStudentBinId(){
+  const val = document.getElementById('student-binid-input').value.trim();
+  const msg = document.getElementById('student-setup-msg');
+  if(!val){ msg.textContent='Bin IDを入力してください'; msg.style.color='var(--red)'; return; }
+  S.studentBinId = val;
+  lsSet(LS_STUDENT_BINID, val);
+  msg.textContent='接続中...'; msg.style.color='var(--muted)';
+  syncFromCloud(true);
+}
+
+function copyBinId(){
+  if(!S.binId) return;
+  navigator.clipboard.writeText(S.binId).then(()=>toast('Bin ID をコピーしました！'));
+}
+
+function changeBinId(){
+  const val = document.getElementById('binid-change-input').value.trim();
+  const msg = document.getElementById('binid-change-msg');
+  if(!val){
+    msg.textContent = '新しい Bin ID を入力してください（空欄の場合は「リセット」ボタンを使ってください）';
+    msg.style.color = 'var(--red)';
+    return;
+  }
+  S.binId = val;
+  lsSet(LS_BINID, val);
+  document.getElementById('binid-change-input').value = '';
+  updateBinIdDisplay();
+  msg.textContent = '✓ Bin ID を変更しました。クラウドから読み込み中...';
+  msg.style.color = '#639922';
+  syncFromCloud(false);
+  setTimeout(()=>{ msg.textContent=''; }, 4000);
+}
+
+function resetBinId(){
+  if(!confirm('Bin ID をリセットします。現在の Bin との接続が切れます。よろしいですか？')) return;
+  S.binId = '';
+  lsSet(LS_BINID, '');
+  updateBinIdDisplay();
+  const msg = document.getElementById('binid-change-msg');
+  msg.textContent = 'Bin ID をリセットしました。次にデータを保存すると新しい Bin が作成されます。';
+  msg.style.color = 'var(--muted)';
+  setSyncUI('err', 'Bin ID なし — データを追加して保存してください');
+  setTimeout(()=>{ msg.textContent=''; }, 5000);
+}
+
+function updateBinIdDisplay(){
+  const disp  = document.getElementById('binid-display');
+  const empty = document.getElementById('binid-empty');
+  const val   = document.getElementById('binid-value');
+  if(S.binId){
+    if(disp)  disp.style.display='block';
+    if(empty) empty.style.display='none';
+    if(val)   val.textContent=S.binId;
+  } else {
+    if(disp)  disp.style.display='none';
+    if(empty) empty.style.display='block';
+  }
+}
+
+function saveApiKey(){
+  const key=document.getElementById('apikey-input').value.trim();
+  const msg=document.getElementById('apikey-msg');
+  if(!key){ msg.textContent='APIキーを入力してください'; msg.style.color='var(--red)'; return; }
+  S.apiKey=key; lsSet(LS_APIKEY,key);
+  msg.textContent='✓ 保存しました。同期テスト中...'; msg.style.color='#639922';
+  cloudSave();
+}
+
+/* ══════════════════════════════════════
+   Auth
+   ══════════════════════════════════════ */
+function showLogin(){
+  ['panel-student','panel-teacher'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById('login-screen').style.display='block';
+  document.getElementById('pw-input').value='';
+  document.getElementById('pw-error').textContent='';
+  setTimeout(()=>document.getElementById('pw-input').focus(),80);
+}
+function checkPw(){
+  if(document.getElementById('pw-input').value===TEACHER_PW){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('panel-teacher').classList.add('active');
+    document.getElementById('apikey-input').value=S.apiKey;
+    updateBinIdDisplay();
+    if(S.apiKey&&S.binId) setSyncUI('ok','クラウド接続済み');
+    else setSyncUI('err','⚙️ 設定タブでAPIキーを登録してください');
+  } else {
+    document.getElementById('pw-error').textContent='パスワードが正しくありません';
+    document.getElementById('pw-input').value='';
+  }
+}
+function logout(){
+  document.getElementById('panel-teacher').classList.remove('active');
+  document.getElementById('panel-student').classList.add('active');
+  renderPracticeCard(); renderAudioPractice();
+}
+function showStudent(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('panel-student').classList.add('active');
+}
+
+/* ══════════════════════════════════════
+   Tabs
+   ══════════════════════════════════════ */
+function switchTab(t){
+  document.querySelectorAll('#panel-teacher .tab').forEach((b,i)=>b.classList.toggle('active',['text','audio','list','settings'][i]===t));
+  ['text','audio','list','settings'].forEach(id=>document.getElementById('tab-'+id).style.display=id===t?'':'none');
+  if(t==='list') renderContentList();
+}
+function switchStudentTab(t){
+  document.querySelectorAll('#panel-student .tab').forEach((b,i)=>b.classList.toggle('active',['text','audio'][i]===t));
+  document.getElementById('student-tab-text').style.display=t==='text'?'':'none';
+  document.getElementById('student-tab-audio').style.display=t==='audio'?'':'none';
+  if(t==='audio') renderAudioPractice();
+}
+
+/* ══════════════════════════════════════
+   Text content → JSONBin
+   ══════════════════════════════════════ */
+function selectCat(el){
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active'); S.cat=el.dataset.cat;
+}
+async function addContent(){
+  const t=document.getElementById('kana-input').value.trim(); if(!t) return;
+  S.contents.push({text:t,cat:S.cat,id:Date.now()});
+  document.getElementById('kana-input').value='';
+  renderPracticeCard(); await cloudSave(); toast('追加・保存しました！');
+}
+async function quickAdd(text,cat){
+  S.contents.push({text,cat,id:Date.now()+Math.random()});
+  renderPracticeCard(); await cloudSave();
+}
+function renderContentList(){
+  const el=document.getElementById('content-list-view');
+  if(!S.contents.length){el.innerHTML='<div class="empty">まだありません</div>';return;}
+  el.innerHTML=S.contents.map((c,i)=>`
+    <div class="content-item">
+      <span style="font-size:11px;color:var(--muted);min-width:44px;">${c.cat}</span>
+      <span style="font-size:18px;flex:1;">${c.text}</span>
+      <div class="icon-btn" onclick="removeContent(${i})">✕</div>
+    </div>`).join('');
+}
+async function removeContent(i){
+  S.contents.splice(i,1);
+  if(S.idx>=S.contents.length) S.idx=Math.max(0,S.contents.length-1);
+  renderContentList(); renderPracticeCard(); await cloudSave();
+}
+
+/* ══════════════════════════════════════
+   Audio links → Google Drive → JSONBin cloud
+   ══════════════════════════════════════ */
+
+// Convert Google Drive share URL to direct embed URL
+function toGDriveEmbed(url){
+  // Pattern: https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+  const m = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if(m) return `https://drive.google.com/file/d/${m[1]}/preview`;
+  // Already an embed or other URL — return as-is
+  return url;
+}
+function toGDriveDownload(url){
+  const m = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if(m) return `https://drive.google.com/uc?export=download&id=${m[1]}`;
+  return url;
+}
+
+async function addAudioLink(){
+  const label = document.getElementById('audio-label-input').value.trim();
+  const url   = document.getElementById('audio-url-input').value.trim();
+  if(!label){ showSaveMsg('ラベルを入力してください', true); return; }
+  if(!url)  { showSaveMsg('リンクを入力してください', true); return; }
+  const item = { id: Date.now()+Math.random(), label, url, embedUrl: toGDriveEmbed(url) };
+  S.audioFiles.push(item);
+  renderAudioFileList(); renderAudioPractice();
+  clearAudioInputs();
+  await cloudSave();
+  showSaveMsg('✓ 追加・クラウドに保存しました');
+}
+
+function clearAudioInputs(){
+  document.getElementById('audio-label-input').value='';
+  document.getElementById('audio-url-input').value='';
+}
+
+function showSaveMsg(msg, isErr=false){
+  const el=document.getElementById('save-msg');
+  if(!el) return;
+  el.textContent=msg;
+  el.style.color=isErr?'var(--red)':'#639922';
+  setTimeout(()=>{ el.textContent=''; el.style.color=''; },3000);
+}
+
+function renderAudioFileList(){
+  const el=document.getElementById('audio-file-list');
+  if(!S.audioFiles.length){el.innerHTML='<div class="empty" style="padding:1rem 0;">まだリンクがありません</div>';return;}
+  el.innerHTML=S.audioFiles.map((f,i)=>`
+    <div class="audio-item" style="margin-bottom:8px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:500;">${f.label}</div>
+          <div style="font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f.url}</div>
+        </div>
+        <div class="icon-btn" style="margin-left:8px;" onclick="removeAudio(${i})">✕</div>
+      </div>
+      <iframe src="${f.embedUrl}" style="width:100%;height:60px;border:none;border-radius:6px;" allow="autoplay"></iframe>
+    </div>`).join('');
+}
+
+async function removeAudio(i){
+  S.audioFiles.splice(i,1);
+  renderAudioFileList(); renderAudioPractice();
+  await cloudSave();
+  showSaveMsg('✓ 削除しました');
+}
+
+function renderAudioPractice(){
+  const el=document.getElementById('audio-practice-list');
+  if(!S.audioFiles.length){el.innerHTML='<div class="empty">ครูยังไม่ได้เพิ่มไฟล์เสียง</div>';return;}
+  el.innerHTML=S.audioFiles.map(f=>`
+    <div class="card">
+      <div style="font-size:14px;font-weight:600;margin-bottom:8px;">🎵 ${f.label}</div>
+      <iframe src="${f.embedUrl}" style="width:100%;height:60px;border:none;border-radius:6px;" allow="autoplay"></iframe>
+      <div style="margin-top:8px;font-size:13px;color:var(--muted);">ฟังเสียงแล้วลองออกเสียงตาม</div>
+    </div>`).join('');
+}
+
+
+/* ══════════════════════════════════════
+   Practice card
+   ══════════════════════════════════════ */
+function renderPracticeCard(){
+  const c=S.contents[S.idx];
+  if(!c){
+    document.getElementById('practice-text').textContent='—';
+    document.getElementById('practice-cat').textContent='ยังไม่มีเนื้อหา';
+    document.getElementById('nav-counter').textContent='0 / 0';
+    document.getElementById('progress-dots').innerHTML=''; return;
+  }
+  document.getElementById('practice-text').textContent=c.text;
+  document.getElementById('practice-cat').textContent=c.cat;
+  document.getElementById('nav-counter').textContent=`${S.idx+1} / ${S.contents.length}`;
+  document.getElementById('progress-dots').innerHTML=S.contents.map((_,i)=>`<div class="dot ${i===S.idx?'current':i<S.idx?'done':''}"></div>`).join('');
+  resetAll(); document.getElementById('eval-result').style.display='none';
+}
+function navItem(d){ S.idx=Math.max(0,Math.min(S.contents.length-1,S.idx+d)); renderPracticeCard(); }
+
+/* ══════════════════════════════════════
+   Recording + Speech Recognition
+   ══════════════════════════════════════ */
+async function toggleRecord(){
+  if(S.recording){ stopAll(); return; }
+  hideAllBanners(); setStatus('');
+  if(!S.hasSpeechAPI) document.getElementById('banner-nobrowser').style.display='block';
+  setHint('กำลังขอสิทธิ์ไมโครโฟน...');
+  let stream;
+  try{ stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false}); }
+  catch(err){ document.getElementById('banner-mic').style.display='block'; setHint('แตะเพื่อเริ่มบันทึกเสียง'); setStatus(err.name); return; }
+  const types=['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/ogg','audio/mp4',''];
+  const mime=types.find(m=>m===''||MediaRecorder.isTypeSupported(m))||'';
+  S.chunks=[];
+  try{ S.mediaRec=new MediaRecorder(stream,mime?{mimeType:mime}:{}); }
+  catch(err){ stream.getTracks().forEach(t=>t.stop()); setHint('แตะเพื่อเริ่มบันทึกเสียง'); return; }
+  S.mediaRec.ondataavailable=e=>{if(e.data&&e.data.size>0)S.chunks.push(e.data);};
+  S.mediaRec.onstop=()=>{
+    stream.getTracks().forEach(t=>t.stop());
+    if(!S.chunks.length) return;
+    const blob=new Blob(S.chunks,{type:S.mediaRec.mimeType||'audio/webm'});
+    const r=new FileReader(); r.onload=e=>{ document.getElementById('recorded-audio').src=e.target.result; document.getElementById('playback-wrap').style.display='flex'; }; r.readAsDataURL(blob);
+  };
+  S.mediaRec.start(100);
+  if(S.hasSpeechAPI){
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    const rec=new SR(); rec.lang='ja-JP'; rec.interimResults=true; rec.maxAlternatives=3; rec.continuous=false;
+    S.speechRec=rec; S.transcript='';
+    rec.onresult=e=>{ let f='',it=''; for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)f+=e.results[i][0].transcript;else it+=e.results[i][0].transcript;} S.transcript=f||S.transcript; setHint('กำลังฟัง... "' + (f||it) + '"'); };
+    rec.onspeechend=()=>{ try{rec.stop();}catch(e){} };
+    rec.onerror=e=>{ if(e.error==='no-speech')document.getElementById('banner-nospeech').style.display='block'; else if(e.error==='not-allowed')document.getElementById('banner-mic').style.display='block'; };
+    rec.onend=()=>{ if(S.mediaRec&&S.mediaRec.state==='recording')S.mediaRec.stop(); S.recording=false; setBtnIdle(); finalizeTranscript(); };
+    rec.start();
+  }
+  S.recording=true;
+  document.getElementById('record-btn').classList.add('recording');
+  document.getElementById('record-btn').textContent='⏹';
+  setHint('กำลังบันทึก... พูดออกเสียงคำที่เห็น แล้วแตะเพื่อหยุด');
+}
+function stopAll(){ if(S.speechRec){try{S.speechRec.stop();}catch(e){}} if(S.mediaRec&&S.mediaRec.state==='recording'){try{S.mediaRec.stop();}catch(e){}} S.recording=false; setBtnIdle(); if(!S.hasSpeechAPI)finalizeTranscript(); }
+
+/* Check if text contains kanji */
+function hasKanji(text){
+  return /[\u4E00-\u9FFF\u3400-\u4DBF]/.test(text);
+}
+
+/* Strip any remaining kanji characters as last-resort fallback */
+function stripKanji(text){
+  return text.replace(/[\u4E00-\u9FFF\u3400-\u4DBF]/g, '');
+}
+
+/* Convert kanji in transcript to hiragana/katakana via Claude */
+async function convertToKana(text){
+  if(!hasKanji(text)) return text;
+  try{
+    const res = await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        model:"claude-haiku-4-5-20251001", max_tokens:300,
+        messages:[{role:"user", content:
+          `以下の日本語テキストを、ひらがなとカタカナのみで書き直してください。\n\nルール:\n- 漢字はすべてひらがなに変換する（例:「桜」→「さくら」「有難う」→「ありがとう」）\n- カタカナ語はカタカナのまま保持する（例:「コーヒー」→「コーヒー」）\n- 長音符（ー）・促音（っ/ッ）・撥音（ん/ン）はそのまま保持する\n- 変換後のテキストのみ返す。説明・記号・改行は不要\n\nテキスト:「${text}」`
+        }]
+      })
+    });
+    const d = await res.json();
+    const converted = (d.content?.map(i=>i.text||'').join('').trim()) || '';
+    if(converted && !hasKanji(converted)) return converted;
+    if(converted) return stripKanji(converted);
+    return stripKanji(text);
+  }catch(e){
+    return stripKanji(text);
+  }
+}
+
+async function finalizeTranscript(){
+  const c=S.contents[S.idx]; if(!c) return;
+  const heard=S.transcript.trim();
+  if(!heard&&!S.hasSpeechAPI){ document.getElementById('eval-btn').style.display=''; setHint('บันทึกสำเร็จ ✓'); return; }
+  if(!heard){ setHint('แตะเพื่อเริ่มบันทึกเสียง'); return; }
+
+  // Convert kanji to kana before showing
+  setHint('กำลังแปลงข้อความ...');
+  const kanaHeard = await convertToKana(heard);
+  S.transcript = kanaHeard; // update so evaluator uses converted text
+
+  showTranscriptComparison(c.text, kanaHeard);
+  document.getElementById('eval-btn').style.display='';
+  setHint('บันทึกและรู้จำเสียงสำเร็จ ✓'); setStatus('');
+}
+function showTranscriptComparison(target,heard){
+  document.getElementById('transcript-box').style.display='block';
+  document.getElementById('transcript-target').textContent=target;
+  const tC=[...target],hC=[...heard]; let html='';
+  hC.forEach((ch,i)=>{ html+=ch===tC[i]?`<span class="char-match">${ch}</span>`:tC.includes(ch)?`<span class="char-extra">${ch}</span>`:`<span class="char-miss">${ch}</span>`; });
+  if(!html)html='<span style="color:var(--muted);">(ไม่ได้ยิน)</span>';
+  document.getElementById('transcript-heard').innerHTML=html;
+  document.getElementById('transcript-note').textContent=target===heard?'✓ ระบบรู้จำเสียงได้ถูกต้องทั้งหมด':'สีเขียว = ถูกต้อง  สีแดง = ผิดพลาด  สีส้ม = เกินมา';
+}
+function resetAll(){
+  stopAll(); S.transcript=''; S.blob=null; S.chunks=[];
+  setBtnIdle(); setHint('แตะเพื่อเริ่มบันทึกเสียง'); setStatus(''); hideAllBanners();
+  document.getElementById('transcript-box').style.display='none';
+  document.getElementById('transcript-target').textContent='—';
+  document.getElementById('transcript-heard').textContent='—';
+  document.getElementById('transcript-note').textContent='';
+  const pw=document.getElementById('playback-wrap'); if(pw)pw.style.display='none';
+  const eb=document.getElementById('eval-btn'); if(eb)eb.style.display='none';
+}
+function setBtnIdle(){ const b=document.getElementById('record-btn'); if(b){b.classList.remove('recording');b.textContent='🎤';} }
+function setHint(t){ const e=document.getElementById('record-hint'); if(e)e.textContent=t; }
+function setStatus(t){ const e=document.getElementById('record-status'); if(e)e.textContent=t; }
+function hideAllBanners(){ ['banner-mic','banner-nospeech','banner-nobrowser'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';}); }
+
+/* ══════════════════════════════════════
+   AI evaluation
+   ══════════════════════════════════════ */
+async function evaluatePronunciation(){
+  const c=S.contents[S.idx]; if(!c||S.evaluating) return;
+  S.evaluating=true;
+  const btn=document.getElementById('eval-btn');
+  btn.innerHTML='<span class="spinner"></span>กำลังประเมิน...'; btn.disabled=true;
+  const target=c.text,heard=S.transcript.trim();
+  // Pre-analyse target for special features
+  const hasLongVowel   = /[ーあいうえおアイウエオ].*[ーあいうえおアイウエオ]/.test(target) || /ー/.test(target);
+  const hasDoubleConsonant = /[っッ]/.test(target);
+  const hasNasal       = /ん|ン/.test(target);
+
+  const strictRules = `
+【きびしいさいてんきじゅん】
+1. もじのいちいちをひかくする: もじがちがう、よけいなもじがある、もじがたりないばあいは、そのぶんだけてんをひく
+2. ながおん（ー・ああ・おう など）:
+   - ながおんをみじかくはっおんした → accuracy -20、rhythm -25
+   - ながおんをぬかした → accuracy -25、rhythm -30
+3. そくおん（っ・ッ）:
+   - そくおんがない、またはよわい → accuracy -20、rhythm -25
+   - そくおんのまえのしいんがちがう → accuracy -15
+4. はつおん（ん・ン）:
+   - はつおんがない → accuracy -15
+   - はつおんがべつのおとになった → accuracy -10
+5. ぜんたいのかなのいっちりつ:
+   - 100%いっち → accuracy 95-100
+   - 1もじちがい → accuracy 75-85
+   - 2もじちがい → accuracy 55-70
+   - 3もじいじょうちがい → accuracy 30-50
+6. スコアはaccuracyとrhythmのへいきんをきじゅんにけいさんする。ぜったいにあまくさいてんしない。`;
+
+  const prompt=heard
+    ?`あなたは日本語発音の厳格な評価者です。タイ人学習者が「${target}」（カテゴリー: ${c.cat}）を発音しました。
+Speech Recognitionが認識したテキスト:「${heard}」
+
+ステップ1: 文字単位の比較
+目標:   ${[...target].join(' | ')}
+認識結果: ${[...heard].join(' | ')}
+一致数: ${[...target].filter((ch,i)=>[...heard][i]===ch).length} / ${[...target].length}文字
+
+ステップ2: 特記事項
+${hasLongVowel ? '- 目標テキストに長音が含まれる → 長音の評価を厳格に行う' : ''}
+${hasDoubleConsonant ? '- 目標テキストに促音（っ/ッ）が含まれる → 促音の評価を厳格に行う' : ''}
+${hasNasal ? '- 目標テキストに撥音（ん/ン）が含まれる → 撥音の評価を行う' : ''}
+
+${strictRules}
+
+【フィードバックのルール】
+- feedback_ja と points はひらがなのみ使用、漢字禁止
+- 具体的にどの文字・音が問題かを指摘すること
+
+JSONのみ返答（マークダウン不要）:
+{"score":<0-100>,"accuracy":<0-100>,"rhythm":<0-100>,"intonation":<0-100>,"feedback_th":"<วิเคราะห์ตัวอักษรที่ถูกและผิด พร้อมระบุปัญหาเสียงยาว/สั้น/ซ้ำอย่างละเอียด 2-3 ประโยค>","feedback_ja":"<ひらがなのみ、どのおとがもんだいかをぐたいてきにしてき、1ぶん>","points":["<ひらがなのみ、もんだいてん1>","<ひらがなのみ、もんだいてん2>"]}`
+    :`あなたは日本語発音の厳格な評価者です。タイ人学習者が「${target}」（カテゴリー: ${c.cat}）を発音しましたが、Speech Recognitionがまったく認識できませんでした。
+これは発音が不明瞭であることを意味します。
+${hasLongVowel ? '※ このテキストには長音が含まれます。' : ''}${hasDoubleConsonant ? '※ このテキストには促音（っ/ッ）が含まれます。' : ''}
+【フィードバックのルール】feedback_ja と points はひらがなのみ、漢字禁止
+JSONのみ: {"score":25,"accuracy":25,"rhythm":30,"intonation":35,"feedback_th":"<ระบบรับรู้เสียงไม่ได้เลย แสดงว่าการออกเสียงยังไม่ชัดเจน ให้คำแนะนำโดยละเอียด 2-3 ประโยค>","feedback_ja":"<ひらがなのみ、もんだいのおとをぐたいてきにしてき、1ぶん>","points":["<ひらがなのみ>","<ひらがなのみ>"]}`;
+
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,messages:[{role:"user",content:prompt}]})});
+    const d=await res.json();
+    renderEval(JSON.parse(d.content.map(i=>i.text||'').join('').replace(/```json|```/g,'').trim()),heard);
+  }catch(e){
+    renderEval({score:50,accuracy:50,rhythm:50,intonation:50,feedback_th:"ไม่สามารถเชื่อมต่อได้ กรุณาลองใหม่",feedback_ja:"せつぞくできませんでした。",points:["もういちどためしてください"]},heard);
+  }
+  S.evaluating=false; btn.innerHTML='ให้ AI ประเมินการออกเสียง ↗'; btn.disabled=false;
+}
+function renderEval(r,heard){
+  const sc=r.score,scc=sc>=80?'score-high':sc>=60?'score-mid':'score-low';
+  const slbl=sc>=80?'ยอดเยี่ยม! 🎉':sc>=60?'ดี แต่ยังพัฒนาได้':'ต้องฝึกเพิ่มอีกนะ';
+  const bc=v=>v>=80?'fill-good':v>=60?'fill-mid':'fill-bad';
+  const bar=(l,v)=>`<div class="bar-wrap"><div class="bar-labels"><span>${l}</span><span>${v}%</span></div><div class="bar-track"><div class="bar-fill ${bc(v)}" style="width:${v}%"></div></div></div>`;
+  const pts=(r.points||[]).map(p=>`<li style="margin-bottom:4px;">${p}</li>`).join('');
+  const hn=heard?`<div style="font-size:11px;color:var(--muted);margin-bottom:12px;padding:6px 10px;background:var(--bg);border-radius:var(--r-md);border:0.5px solid var(--border);">ระบบได้ยินว่า: <strong>「${heard}」</strong></div>`:'';
+  document.getElementById('eval-result').style.display='';
+  document.getElementById('eval-result').innerHTML=`<div class="eval-card"><div class="eval-header"><div class="eval-score ${scc}">${sc}<span style="font-size:16px;">คะแนน</span></div><div><div style="font-size:14px;font-weight:600;">ผลการประเมินการออกเสียง</div><div style="font-size:12px;color:var(--muted);">${slbl}</div></div></div>${hn}${bar('ความถูกต้องของเสียง',r.accuracy)}${bar('จังหวะและลีลา',r.rhythm)}${bar('ทำนองเสียง',r.intonation)}<div class="eval-fb"><div class="fb-lbl">🇹🇭 คำแนะนำ (ภาษาไทย)</div><div class="fb-txt">${r.feedback_th}</div><div class="fb-lbl">🇯🇵 コメント (ひらがな)</div><div class="fb-txt">${r.feedback_ja}</div>${pts?`<div class="fb-lbl">จุดที่ควรปรับปรุง</div><ul style="padding-left:1.2rem;font-size:13px;color:var(--ink);">${pts}</ul>`:''}</div></div>`;
+}
+
+/* ══════════════════════════════════════
+   Toast
+   ══════════════════════════════════════ */
+function toast(msg){
+  const t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#3d5a99;color:#fff;padding:8px 20px;border-radius:8px;font-size:13px;z-index:9999;white-space:nowrap;';
+  t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2500);
+}
+
+/* ══════════════════════════════════════
+   Init
+   ══════════════════════════════════════ */
+(async()=>{
+  // Load credentials
+  S.apiKey      = lsGet(LS_APIKEY);
+  S.binId       = lsGet(LS_BINID);
+  S.studentBinId = lsGet(LS_STUDENT_BINID);
+
+  // Effective bin to use on student side
+  const effectiveBinId = S.binId || S.studentBinId;
+
+  document.getElementById('loading-msg').textContent =
+    effectiveBinId ? 'クラウドからデータを取得中...' : 'アプリを起動中...';
+
+  if(effectiveBinId){
+    // Teacher: use apiKey; Student: public bin (no apiKey)
+    await syncFromCloud(!S.binId);
+  }
+
+  // Default content if empty
+  if(S.contents.length===0){
+    S.contents=[
+      {text:'さくら',cat:'ひらがな',id:1},
+      {text:'コーヒー',cat:'カタカナ',id:2},
+      {text:'ありがとうございます',cat:'文',id:3}
+    ];
+  }
+
+  document.getElementById('loading-overlay').style.display='none';
+  document.getElementById('main-wrap').style.display='';
+  renderPracticeCard();
+  renderAudioFileList();
+  renderAudioPractice();
+  updateBinIdDisplay();
+  // If student has no binId at all, show setup box
+  if(!S.binId && !S.studentBinId){
+    document.getElementById('student-setup-box').style.display='block';
+    setStudentSyncUI('err','未接続 — Bin IDを入力してください');
+  }
+})();
+</script>
+</body>
+</html>
